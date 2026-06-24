@@ -830,6 +830,8 @@ function finalizarQuiz() {
 }
 
 function renderizarResultado(perfil, score) {
+  _perfilAtual = perfil;
+  _scoreAtual = score;
   const data = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
   const container = document.getElementById('resultado-conteudo');
   container.innerHTML = `
@@ -850,7 +852,7 @@ function renderizarResultado(perfil, score) {
         </div>
       `).join('')}
     </div>
-    <button class="btn-pdf" onclick="gerarPDF('${perfil.nome}', ${score}, '${perfil.emoji}', '${perfil.descricao}', '${perfil.significado}', ${JSON.stringify(perfil.orientacoes)})">
+    <button class="btn-pdf" onclick="gerarPDFAtual()">
       ⬇ Baixar meu resultado em PDF
     </button>
     <p style="font-size:0.78rem;color:var(--texto-suave);margin-top:12px;text-align:center;">
@@ -877,284 +879,277 @@ function enviarParaPlanilha(perfil, score) {
 
 // ==================== GERAÇÃO DO PDF ====================
 function gerarPDF(nomePerfil, score, emoji, descricao, significado, orientacoes) {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const W = 210, H = 297;
-  const rosa1 = [252, 228, 236];
-  const rosa2 = [194, 24, 91];
-  const rosa3 = [136, 14, 79];
-  const textoSuave = [123, 79, 106];
-  const data = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
-
-  // ===== PÁGINA 1 — CAPA =====
-  doc.setFillColor(...rosa1);
-  doc.rect(0, 0, W, H, 'F');
-
-  // Faixa decorativa topo
-  doc.setFillColor(...rosa3);
-  doc.rect(0, 0, W, 6, 'F');
-
-  // Logo circular
   try {
-    // Máscara circular para logo
-    doc.addImage(logoBase64, 'JPEG', W/2 - 18, 20, 36, 36);
-  } catch(e) {}
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const W = 210, H = 297;
+    const rosa1 = [252, 228, 236];
+    const rosa2 = [194, 24, 91];
+    const rosa3 = [136, 14, 79];
+    const cinza = [100, 100, 100];
+    const data = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
 
-  // Foto
-  try {
-    doc.addImage(fotoBase64, 'PNG', W/2 - 30, 62, 60, 72);
-  } catch(e) {}
+    // ===== PÁGINA 1 — CAPA =====
+    doc.setFillColor(...rosa1);
+    doc.rect(0, 0, W, H, 'F');
+    doc.setFillColor(...rosa3);
+    doc.rect(0, 0, W, 8, 'F');
 
-  // Linha decorativa
-  doc.setDrawColor(...rosa2);
-  doc.setLineWidth(0.5);
-  doc.line(40, 140, W-40, 140);
+    // Logo
+    try { doc.addImage(logoBase64, 'JPEG', W/2 - 18, 18, 36, 36); } catch(e) {}
 
-  doc.setTextColor(...rosa3);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.text('SEU RESULTADO', W/2, 150, {align:'center'});
+    // Foto
+    try { doc.addImage(fotoBase64, 'JPEG', W/2 - 28, 60, 56, 66); } catch(e) {}
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(20);
-  doc.setTextColor(...rosa3);
-  const titulo = doc.splitTextToSize('Rastreio de Conflitos Familiares', 130);
-  doc.text(titulo, W/2, 162, {align:'center'});
-
-  doc.setDrawColor(...rosa2);
-  doc.line(40, 180, W-40, 180);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(...textoSuave);
-  doc.text('Preparado especialmente para:', W/2, 192, {align:'center'});
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.setTextColor(...rosa3);
-  doc.text(dadosUsuario.nome, W/2, 202, {align:'center'});
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(...textoSuave);
-  doc.text(`Data de realização: ${data}`, W/2, 212, {align:'center'});
-
-  // Frase rodapé
-  doc.setFillColor(...rosa3);
-  doc.rect(0, H-28, W, 28, 'F');
-  doc.setTextColor(255,255,255);
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(9);
-  doc.text('"Entender como você reage é o primeiro passo para mudar o que já não serve."', W/2, H-16, {align:'center'});
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.text('Sueli Pedroso — Terapeuta Sistêmica', W/2, H-9, {align:'center'});
-
-  // ===== PÁGINA 2 — RESULTADO =====
-  doc.addPage();
-  doc.setFillColor(...rosa1);
-  doc.rect(0, 0, W, H, 'F');
-  doc.setFillColor(...rosa3);
-  doc.rect(0, 0, W, 6, 'F');
-
-  doc.setFillColor(...rosa2);
-  doc.rect(0, 6, W, 32, 'F');
-  doc.setTextColor(255,255,255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.text('SEU PERFIL', W/2, 18, {align:'center'});
-  doc.setFontSize(20);
-  doc.text(`${emoji} ${nomePerfil}`, W/2, 30, {align:'center'});
-
-  // Score badge
-  doc.setFillColor(255,255,255);
-  doc.roundedRect(W/2-25, 44, 50, 12, 6, 6, 'F');
-  doc.setTextColor(...rosa3);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.text(`Score: ${score} / 30 pontos`, W/2, 52, {align:'center'});
-
-  let y = 66;
-  doc.setDrawColor(...rosa2);
-  doc.setLineWidth(0.3);
-  doc.line(20, y, W-20, y);
-  y += 10;
-
-  doc.setTextColor(...rosa3);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.text('Descrição do seu perfil', 20, y);
-  y += 8;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9.5);
-  doc.setTextColor(...textoSuave);
-  const descLines = doc.splitTextToSize(descricao, 170);
-  doc.text(descLines, 20, y);
-  y += descLines.length * 5.5 + 10;
-
-  doc.setDrawColor(...rosa2);
-  doc.line(20, y, W-20, y);
-  y += 10;
-
-  doc.setTextColor(...rosa3);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.text('O que isso significa na prática', 20, y);
-  y += 8;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9.5);
-  doc.setTextColor(...textoSuave);
-  const sigLines = doc.splitTextToSize(significado, 170);
-  doc.text(sigLines, 20, y);
-
-  // Rodapé
-  doc.setFillColor(...rosa3);
-  doc.rect(0, H-16, W, 16, 'F');
-  doc.setTextColor(255,255,255);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.text('Sueli Pedroso — Terapeuta Sistêmica | @suape3_terapias', W/2, H-8, {align:'center'});
-
-  // ===== PÁGINA 3 — ORIENTAÇÕES =====
-  doc.addPage();
-  doc.setFillColor(...rosa1);
-  doc.rect(0, 0, W, H, 'F');
-  doc.setFillColor(...rosa3);
-  doc.rect(0, 0, W, 6, 'F');
-
-  doc.setFillColor(...rosa2);
-  doc.rect(0, 6, W, 24, 'F');
-  doc.setTextColor(255,255,255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.text('Orientações Práticas', W/2, 22, {align:'center'});
-
-  y = 42;
-  orientacoes.forEach((o, i) => {
-    if (y > 260) { doc.addPage(); y = 20; }
-    // Número
-    doc.setFillColor(...rosa2);
-    doc.circle(26, y+2, 5, 'F');
-    doc.setTextColor(255,255,255);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.text(String(i+1), 26, y+4.5, {align:'center'});
+    doc.setDrawColor(...rosa2);
+    doc.setLineWidth(0.5);
+    doc.line(40, 134, W-40, 134);
 
     doc.setTextColor(...rosa3);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9.5);
-    doc.text(o.titulo, 35, y+4);
-    y += 10;
+    doc.setFontSize(9);
+    doc.text('SEU RESULTADO', W/2, 144, {align:'center'});
+
+    doc.setFontSize(18);
+    const tituloLines = doc.splitTextToSize('Rastreio de Conflitos Familiares', 130);
+    doc.text(tituloLines, W/2, 154, {align:'center'});
+
+    doc.setDrawColor(...rosa2);
+    doc.line(40, 172, W-40, 172);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.setTextColor(...textoSuave);
-    const lines = doc.splitTextToSize(o.texto, 160);
-    doc.text(lines, 35, y);
-    y += lines.length * 5 + 8;
+    doc.setTextColor(cinza[0], cinza[1], cinza[2]);
+    doc.text('Preparado especialmente para:', W/2, 182, {align:'center'});
 
-    if (i < orientacoes.length - 1) {
-      doc.setDrawColor(240, 214, 232);
-      doc.setLineWidth(0.2);
-      doc.line(20, y, W-20, y);
-      y += 8;
-    }
-  });
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(15);
+    doc.setTextColor(...rosa3);
+    doc.text(dadosUsuario.nome, W/2, 192, {align:'center'});
 
-  // Rodapé
-  doc.setFillColor(...rosa3);
-  doc.rect(0, H-16, W, 16, 'F');
-  doc.setTextColor(255,255,255);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.text('Sueli Pedroso — Terapeuta Sistêmica | @suape3_terapias', W/2, H-8, {align:'center'});
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(cinza[0], cinza[1], cinza[2]);
+    doc.text('Data: ' + data, W/2, 202, {align:'center'});
 
-  // ===== PÁGINA 4 — SOBRE A TERAPEUTA =====
-  doc.addPage();
-  doc.setFillColor(...rosa1);
-  doc.rect(0, 0, W, H, 'F');
-  doc.setFillColor(...rosa3);
-  doc.rect(0, 0, W, 6, 'F');
+    doc.setFillColor(...rosa3);
+    doc.rect(0, H-24, W, 24, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8);
+    doc.text('"Entender como voce reage e o primeiro passo para mudar o que ja nao serve."', W/2, H-14, {align:'center'});
+    doc.setFont('helvetica', 'normal');
+    doc.text('Sueli Pedroso - Terapeuta Sistemica', W/2, H-7, {align:'center'});
 
-  // Foto profissional
-  try {
-    doc.addImage(fotoBase64, 'PNG', W/2-35, 14, 70, 84);
-  } catch(e) {}
+    // ===== PÁGINA 2 — RESULTADO =====
+    doc.addPage();
+    doc.setFillColor(...rosa1);
+    doc.rect(0, 0, W, H, 'F');
+    doc.setFillColor(...rosa3);
+    doc.rect(0, 0, W, 8, 'F');
 
-  // Logo em círculo ao lado
-  try {
-    doc.addImage(logoBase64, 'JPEG', W/2+30, 14, 28, 28);
-  } catch(e) {}
+    doc.setFillColor(...rosa2);
+    doc.rect(0, 8, W, 30, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text('SEU PERFIL', W/2, 20, {align:'center'});
+    doc.setFontSize(18);
+    doc.text(nomePerfil, W/2, 32, {align:'center'});
 
-  doc.setDrawColor(...rosa2);
-  doc.setLineWidth(0.5);
-  doc.line(40, 104, W-40, 104);
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(W/2-25, 44, 50, 11, 5, 5, 'F');
+    doc.setTextColor(...rosa3);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text('Score: ' + score + ' / 30 pontos', W/2, 51, {align:'center'});
 
-  doc.setTextColor(...rosa3);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.text('Sueli Pedroso', W/2, 116, {align:'center'});
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(...textoSuave);
-  doc.text('Terapeuta Sistêmica', W/2, 124, {align:'center'});
+    let y = 64;
+    doc.setDrawColor(...rosa2);
+    doc.setLineWidth(0.3);
+    doc.line(20, y, W-20, y);
+    y += 10;
 
-  doc.setDrawColor(...rosa2);
-  doc.line(40, 130, W-40, 130);
+    doc.setTextColor(...rosa3);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('Descricao do seu perfil', 20, y);
+    y += 8;
 
-  doc.setFontSize(9.5);
-  y = 140;
-  const bio = 'Sou terapeuta sistêmica e meu trabalho auxilia pessoas a identificar a origem de conflitos emocionais e padrões repetitivos, promovendo mais consciência, equilíbrio, leveza e transformação em suas vidas.';
-  const bioLines = doc.splitTextToSize(bio, 160);
-  doc.text(bioLines, W/2, y, {align:'center'});
-  y += bioLines.length * 5.5 + 16;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(cinza[0], cinza[1], cinza[2]);
+    const descLimpa = descricao.replace(/[^ -]/g, function(c) {
+      const map = {'ã':'a','â':'a','á':'a','à':'a','ä':'a','õ':'o','ô':'o','ó':'o','ò':'o','ê':'e','é':'e','è':'e','í':'i','ú':'u','ç':'c','Ã':'A','Â':'A','Á':'A','Õ':'O','Ô':'O','Ó':'O','Ê':'E','É':'E','Í':'I','Ú':'U','Ç':'C'};
+      return map[c] || c;
+    });
+    const descLines = doc.splitTextToSize(descLimpa, 170);
+    doc.text(descLines, 20, y);
+    y += descLines.length * 5.5 + 10;
 
-  // Instagram
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.setTextColor(...rosa2);
-  doc.text('📸  @suape3_terapias', W/2, y, {align:'center'});
-  y += 10;
-  doc.text('📱  (42) 98435-2645', W/2, y, {align:'center'});
-  y += 20;
+    doc.line(20, y, W-20, y);
+    y += 10;
 
-  // CTA
-  doc.setFillColor(...rosa3);
-  doc.roundedRect(30, y, W-60, 22, 5, 5, 'F');
-  doc.setTextColor(255,255,255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text('✦  AGENDE SUA SESSÃO  ✦', W/2, y+10, {align:'center'});
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.text('WhatsApp: (42) 98435-2645', W/2, y+18, {align:'center'});
+    doc.setTextColor(...rosa3);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('O que isso significa na pratica', 20, y);
+    y += 8;
 
-  y += 36;
-  doc.setDrawColor(...rosa2);
-  doc.line(40, y, W-40, y);
-  y += 10;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(cinza[0], cinza[1], cinza[2]);
+    const sigLimpa = significado.replace(/[^ -]/g, function(c) {
+      const map = {'ã':'a','â':'a','á':'a','à':'a','ä':'a','õ':'o','ô':'o','ó':'o','ò':'o','ê':'e','é':'e','è':'e','í':'i','ú':'u','ç':'c','Ã':'A','Â':'A','Á':'A','Õ':'O','Ô':'O','Ó':'O','Ê':'E','É':'E','Í':'I','Ú':'U','Ç':'C'};
+      return map[c] || c;
+    });
+    const sigLines = doc.splitTextToSize(sigLimpa, 170);
+    doc.text(sigLines, 20, y);
 
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(9);
-  doc.setTextColor(...textoSuave);
-  const frase = '"Você não precisa mudar quem você é. Precisa entender por que age como age — e escolher, a partir daí."';
-  const fraseLines = doc.splitTextToSize(frase, 160);
-  doc.text(fraseLines, W/2, y, {align:'center'});
+    doc.setFillColor(...rosa3);
+    doc.rect(0, H-16, W, 16, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.text('Sueli Pedroso - Terapeuta Sistemica | @suape3_terapias', W/2, H-8, {align:'center'});
 
-  // Rodapé final
-  doc.setFillColor(...rosa3);
-  doc.rect(0, H-16, W, 16, 'F');
-  doc.setTextColor(255,255,255);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.text('© Sueli Pedroso — Terapeuta Sistêmica | @suape3_terapias', W/2, H-8, {align:'center'});
+    // ===== PÁGINA 3 — ORIENTAÇÕES =====
+    doc.addPage();
+    doc.setFillColor(...rosa1);
+    doc.rect(0, 0, W, H, 'F');
+    doc.setFillColor(...rosa3);
+    doc.rect(0, 0, W, 8, 'F');
+    doc.setFillColor(...rosa2);
+    doc.rect(0, 8, W, 22, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('Orientacoes Praticas', W/2, 22, {align:'center'});
 
-  // Download
-  const nomeArquivo = 'resultado-' + dadosUsuario.nome.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') + '.pdf';
-  doc.save(nomeArquivo);
+    y = 40;
+    orientacoes.forEach(function(o, i) {
+      if (y > 262) { doc.addPage(); y = 20; }
+      doc.setFillColor(...rosa2);
+      doc.circle(26, y+2, 5, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.text(String(i+1), 26, y+4.5, {align:'center'});
+
+      doc.setTextColor(...rosa3);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      const tituloLimpo = o.titulo.replace(/[^ -]/g, function(c) {
+        const map = {'ã':'a','â':'a','á':'a','à':'a','õ':'o','ô':'o','ó':'o','ê':'e','é':'e','í':'i','ú':'u','ç':'c','Ã':'A','Á':'A','Õ':'O','Ó':'O','É':'E','Í':'I','Ú':'U','Ç':'C'};
+        return map[c] || c;
+      });
+      doc.text(tituloLimpo, 35, y+4);
+      y += 10;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(cinza[0], cinza[1], cinza[2]);
+      const textoLimpo = o.texto.replace(/[^ -]/g, function(c) {
+        const map = {'ã':'a','â':'a','á':'a','à':'a','ä':'a','õ':'o','ô':'o','ó':'o','ò':'o','ê':'e','é':'e','è':'e','í':'i','ú':'u','ç':'c','Ã':'A','Â':'A','Á':'A','Õ':'O','Ô':'O','Ó':'O','Ê':'E','É':'E','Í':'I','Ú':'U','Ç':'C'};
+        return map[c] || c;
+      });
+      const linhas = doc.splitTextToSize(textoLimpo, 160);
+      doc.text(linhas, 35, y);
+      y += linhas.length * 5 + 8;
+
+      if (i < orientacoes.length - 1) {
+        doc.setDrawColor(240, 214, 232);
+        doc.setLineWidth(0.2);
+        doc.line(20, y, W-20, y);
+        y += 8;
+      }
+    });
+
+    doc.setFillColor(...rosa3);
+    doc.rect(0, H-16, W, 16, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.text('Sueli Pedroso - Terapeuta Sistemica | @suape3_terapias', W/2, H-8, {align:'center'});
+
+    // ===== PÁGINA 4 — SOBRE =====
+    doc.addPage();
+    doc.setFillColor(...rosa1);
+    doc.rect(0, 0, W, H, 'F');
+    doc.setFillColor(...rosa3);
+    doc.rect(0, 0, W, 8, 'F');
+
+    try { doc.addImage(fotoBase64, 'JPEG', W/2-30, 14, 60, 72); } catch(e) {}
+    try { doc.addImage(logoBase64, 'JPEG', W/2+26, 14, 26, 26); } catch(e) {}
+
+    doc.setDrawColor(...rosa2);
+    doc.setLineWidth(0.5);
+    doc.line(40, 92, W-40, 92);
+
+    doc.setTextColor(...rosa3);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('Sueli Pedroso', W/2, 102, {align:'center'});
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(cinza[0], cinza[1], cinza[2]);
+    doc.text('Terapeuta Sistemica', W/2, 110, {align:'center'});
+
+    doc.line(40, 116, W-40, 116);
+
+    const bio = 'Sou terapeuta sistemica e meu trabalho auxilia pessoas a identificar a origem de conflitos emocionais e padroes repetitivos, promovendo mais consciencia, equilibrio, leveza e transformacao em suas vidas.';
+    const bioLines = doc.splitTextToSize(bio, 160);
+    doc.setFontSize(9.5);
+    doc.text(bioLines, W/2, 126, {align:'center'});
+
+    y = 126 + bioLines.length * 5.5 + 12;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(...rosa2);
+    doc.text('@suape3_terapias', W/2, y, {align:'center'});
+    y += 10;
+    doc.text('(42) 98435-2645', W/2, y, {align:'center'});
+    y += 18;
+
+    doc.setFillColor(...rosa3);
+    doc.roundedRect(30, y, W-60, 20, 5, 5, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('AGENDE SUA SESSAO', W/2, y+9, {align:'center'});
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('WhatsApp: (42) 98435-2645', W/2, y+17, {align:'center'});
+
+    y += 34;
+    doc.setDrawColor(...rosa2);
+    doc.line(40, y, W-40, y);
+    y += 10;
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8.5);
+    doc.setTextColor(cinza[0], cinza[1], cinza[2]);
+    const frase = '"Voce nao precisa mudar quem voce e. Precisa entender por que age como age - e escolher, a partir dai."';
+    const fraseLines = doc.splitTextToSize(frase, 160);
+    doc.text(fraseLines, W/2, y, {align:'center'});
+
+    doc.setFillColor(...rosa3);
+    doc.rect(0, H-16, W, 16, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.text('Sueli Pedroso - Terapeuta Sistemica | @suape3_terapias', W/2, H-8, {align:'center'});
+
+    // Download
+    const nomeArquivo = 'resultado-' + dadosUsuario.nome.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') + '.pdf';
+    doc.save(nomeArquivo);
+
+  } catch(err) {
+    console.error('Erro ao gerar PDF:', err);
+    alert('Erro ao gerar PDF: ' + err.message);
+  }
 }
+
 
 // Init
 gerarTelas();
