@@ -1,1 +1,1164 @@
 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rastreio de Conflitos Familiares — Sueli Pedroso</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap');
+
+  :root {
+    --rosa-claro: #fce4ec;
+    --rosa-medio: #f48fb1;
+    --rosa-forte: #e91e8c;
+    --rosa-escuro: #880e4f;
+    --rosa-bg: #fdf2f7;
+    --texto: #3d1a2e;
+    --texto-suave: #7b4f6a;
+    --branco: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Lato', sans-serif;
+    background: var(--rosa-bg);
+    color: var(--texto);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--branco);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    box-shadow: 0 2px 12px rgba(233,30,140,0.08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-foto {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: top;
+    border: 3px solid var(--rosa-medio);
+    flex-shrink: 0;
+  }
+
+  .header-logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .header-info {
+    text-align: center;
+  }
+
+  .header-info h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: var(--rosa-escuro);
+    font-weight: 700;
+  }
+
+  .header-info p {
+    font-size: 0.78rem;
+    color: var(--texto-suave);
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* MAIN */
+  .main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 32px 20px 120px;
+  }
+
+  /* TELA */
+  .tela {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+  .tela.ativa { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* TELA INICIAL */
+  .intro-card {
+    background: var(--branco);
+    border-radius: 20px;
+    padding: 40px 32px;
+    box-shadow: 0 4px 24px rgba(233,30,140,0.08);
+    text-align: center;
+  }
+
+  .intro-tag {
+    display: inline-block;
+    background: var(--rosa-claro);
+    color: var(--rosa-escuro);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+
+  .intro-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    color: var(--rosa-escuro);
+    line-height: 1.3;
+    margin-bottom: 20px;
+  }
+
+  .intro-card p {
+    color: var(--texto-suave);
+    font-size: 1rem;
+    line-height: 1.75;
+    margin-bottom: 16px;
+  }
+
+  .intro-destaque {
+    background: var(--rosa-claro);
+    border-left: 4px solid var(--rosa-forte);
+    border-radius: 0 12px 12px 0;
+    padding: 16px 20px;
+    margin: 24px 0;
+    text-align: left;
+    font-style: italic;
+    color: var(--rosa-escuro);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  /* FORMULÁRIO */
+  .form-group {
+    margin-bottom: 20px;
+    text-align: left;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--texto);
+    margin-bottom: 8px;
+    letter-spacing: 0.03em;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #f0d6e8;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-family: 'Lato', sans-serif;
+    color: var(--texto);
+    background: var(--branco);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+
+  .form-group input:focus {
+    border-color: var(--rosa-forte);
+    box-shadow: 0 0 0 3px rgba(233,30,140,0.1);
+  }
+
+  .form-group input.erro {
+    border-color: #e53935;
+  }
+
+  .msg-erro {
+    display: none;
+    color: #e53935;
+    font-size: 0.8rem;
+    margin-top: 6px;
+  }
+
+  .msg-erro.visivel { display: block; }
+
+  /* PERGUNTA */
+  .pergunta-card {
+    background: var(--branco);
+    border-radius: 20px;
+    padding: 36px 28px;
+    box-shadow: 0 4px 24px rgba(233,30,140,0.08);
+  }
+
+  .progresso-wrap {
+    margin-bottom: 28px;
+  }
+
+  .progresso-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--texto-suave);
+    margin-bottom: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .progresso-bar {
+    height: 6px;
+    background: var(--rosa-claro);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .progresso-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--rosa-medio), var(--rosa-forte));
+    border-radius: 10px;
+    transition: width 0.4s ease;
+  }
+
+  .pergunta-numero {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--rosa-forte);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+  }
+
+  .pergunta-texto {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    color: var(--rosa-escuro);
+    line-height: 1.45;
+    margin-bottom: 28px;
+  }
+
+  .opcoes {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .opcao {
+    border: 2px solid #f0d6e8;
+    border-radius: 14px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--texto);
+    background: var(--branco);
+    text-align: left;
+    position: relative;
+    padding-left: 52px;
+  }
+
+  .opcao::before {
+    content: attr(data-letra);
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
+    background: var(--rosa-claro);
+    color: var(--rosa-escuro);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.78rem;
+    transition: all 0.2s;
+  }
+
+  .opcao:hover {
+    border-color: var(--rosa-forte);
+    background: #fff5fb;
+  }
+
+  .opcao.selecionada {
+    border-color: var(--rosa-forte);
+    background: linear-gradient(135deg, #fff0f8, #ffe4f4);
+    font-weight: 700;
+    color: var(--rosa-escuro);
+  }
+
+  .opcao.selecionada::before {
+    background: var(--rosa-forte);
+    color: white;
+  }
+
+  /* BOTÕES */
+  .btn-primary {
+    display: block;
+    width: 100%;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, var(--rosa-forte), var(--rosa-escuro));
+    color: white;
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 4px 16px rgba(233,30,140,0.3);
+    margin-top: 28px;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(233,30,140,0.4);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* RESULTADO */
+  .resultado-card {
+    background: var(--branco);
+    border-radius: 20px;
+    padding: 40px 28px;
+    box-shadow: 0 4px 24px rgba(233,30,140,0.1);
+    text-align: center;
+  }
+
+  .resultado-badge {
+    display: inline-block;
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+  }
+
+  .resultado-titulo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.7rem;
+    color: var(--rosa-escuro);
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .resultado-score {
+    display: inline-block;
+    background: var(--rosa-claro);
+    color: var(--rosa-escuro);
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 6px 18px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+
+  .resultado-desc {
+    color: var(--texto-suave);
+    font-size: 1rem;
+    line-height: 1.75;
+    margin-bottom: 16px;
+    text-align: left;
+  }
+
+  .resultado-pratica {
+    background: var(--rosa-bg);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: left;
+    margin: 24px 0;
+  }
+
+  .resultado-pratica h3 {
+    font-family: 'Playfair Display', serif;
+    color: var(--rosa-escuro);
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+  }
+
+  .orientacao {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0d6e8;
+  }
+
+  .orientacao:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .orientacao strong {
+    display: block;
+    color: var(--rosa-escuro);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+
+  .orientacao p {
+    color: var(--texto-suave);
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
+
+  .btn-pdf {
+    display: block;
+    width: 100%;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, var(--rosa-forte), var(--rosa-escuro));
+    color: white;
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 4px 16px rgba(233,30,140,0.3);
+    margin-top: 12px;
+    text-decoration: none;
+    text-align: center;
+  }
+
+  .btn-pdf:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(233,30,140,0.4);
+  }
+
+  /* BOTÃO WHATSAPP FIXO */
+  .btn-wpp-fixo {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #25d366;
+    color: white;
+    padding: 14px 28px;
+    border-radius: 50px;
+    font-family: 'Lato', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 20px rgba(37,211,102,0.45);
+    z-index: 200;
+    white-space: nowrap;
+    transition: all 0.25s;
+  }
+
+  .btn-wpp-fixo:hover {
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 8px 28px rgba(37,211,102,0.55);
+  }
+
+  .wpp-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+
+  /* LOADING */
+  .loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--texto-suave);
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--rosa-claro);
+    border-top-color: var(--rosa-forte);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 480px) {
+    .header { gap: 12px; padding: 16px; }
+    .header-info h1 { font-size: 1rem; }
+    .intro-card { padding: 28px 20px; }
+    .intro-card h2 { font-size: 1.5rem; }
+    .pergunta-card { padding: 28px 20px; }
+    .pergunta-texto { font-size: 1.15rem; }
+    .resultado-card { padding: 28px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABIMDRANCxIQDhAUExIVGywdGxgYGzYnKSAsQDlEQz85Pj1HUGZXR0thTT0+WXlaYWltcnNyRVV9hnxvhWZwcm7/2wBDARMUFBsXGzQdHTRuST5Jbm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm5ubm7/wAARCAB4AHgDASIAAhEBAxEB/8QAGgABAQEBAQEBAAAAAAAAAAAAAAQDAgUBBv/EADAQAAICAQMCBQQBAgcAAAAAAAABAgMRBBIhMUETIlFhcRSBkaFCBRUjMjNSscHw/8QAFgEBAQEAAAAAAAAAAAAAAAAAAAED/8QAGBEBAQEBAQAAAAAAAAAAAAAAABEBITH/2gAMAwEAAhEDEQA/AP2AADUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADlyiuskvuYX6iuFyrssUFjLWeX9up0tRFryU3SXtW0v3gDZNPo8htLqyWxvO+FN0WuuIrn9mk7K7qrFF8xXKaw19mBtuj6r8gx0qTp6J8vsLasRc6/LJc8dws7G4MqLPEhz1XU1CAAAAAAAABPrLJQhXGEtniWRrc/8Aan3+e33KDiyuFtcq7IqUZLDTCJpULTT8SmOM9X1b+X1ZtXqIT6+V+5K9Y9PvplNXySarlnly7Rl7+/f5MblrrYzS0ca200pRmm/Z4z17/r3C3Fy3ah7424p/j4fWXrl9vt+TjVU6enS222QTUINuUvM8L5I69TL+nxhC6DhnOyrcm9q4+F279zjXaq3WbNPTFOL/AMSzZ52op8JvhcvHd9GDxbpdNROhN0qLfpw1+Bp79tdyts3Vq111Tl1nx098PKz7En0+ts02fElLMsOqM9uV3y1j8L8mUdBrJ6mub0unhVXW1CtvKi/fnr0S7LLBvr1dJHEHL16FB5ej1WvsnKH0cK64zUefKku+P3+vU9QFoAAAAAAAAAZXWyrcFGqU92c7e3AEr01UXZp3KyFM8+RS8vPXr0LksJJdiJ6yyUfNoLmtu7p74x657nXjThZteltUeeYttf5sf8c/AONdVGM4qLSbznpnCMqYSWmsutTVlqy0/wCK/jH7L9thaqaeI6O7+XOPTp+T49VZPiehva8r6evX8ArbSf6X3NyV2yptcYaSxx3qO6PKaxnPxng+V6yySTlo74Z7Ncrh+n/uQbvVYJY6ux2Rj9Jck57XJrhLGc/GePsVBAABQAAAAAM76lfROpylDesbovDXwaACeekU7FPxbViKjtjLC4749TL+2w2bVqNRjZsw55XXOfktARK9FlrN93lcmvN6iGj2xmvHualX4fL6e69HyVACT6CLfmuuktuMOXun/wBftnK/p0Y4xfeknJ4U8J5bfP5LQBPDSbLYzV1r2uT2t8PPr6lAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB//2Q==" alt="Logo Sueli Pedroso" class="header-logo">
+  <div class="header-info">
+    <h1>Sueli Pedroso</h1>
+    <p>Terapeuta Sistêmica</p>
+  </div>
+  <img src="data:image/jpeg;base64,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" alt="Sueli Pedroso" class="header-foto">
+</header>
+
+<!-- BOTÃO WHATSAPP FIXO -->
+<a href="https://wa.me/5542984352645?text=Ol%C3%A1%2C+Sueli!+Fiz+o+rastreio+de+conflitos+familiares+e+gostaria+de+agendar+minha+sess%C3%A3o." 
+   target="_blank" class="btn-wpp-fixo">
+  <svg class="wpp-icon" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+  Agende sua sessão
+</a>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- TELA 0: INTRODUÇÃO + FORMULÁRIO -->
+  <div class="tela ativa" id="tela-0">
+    <div class="intro-card">
+      <span class="intro-tag">Rastreio Terapêutico</span>
+      <h2>Como Você Reage nos Conflitos da Sua Família?</h2>
+      <p>Descubra seu padrão emocional e o que ele revela sobre seus relacionamentos mais importantes.</p>
+      <div class="intro-destaque">
+        Todo conflito familiar carrega uma mensagem. A questão não é <em>se</em> você vai enfrentar tensões em casa — mas <em>como</em> você reage quando elas aparecem.
+      </div>
+      <p>Este rastreio foi criado para ajudar você a entender seu padrão de resposta nos momentos de conflito. <strong>São menos de 5 minutos. Responda com honestidade.</strong></p>
+
+      <div style="margin-top:32px; text-align:left;">
+        <div class="form-group">
+          <label for="nome">Nome completo</label>
+          <input type="text" id="nome" placeholder="Seu nome completo">
+          <span class="msg-erro" id="erro-nome">Por favor, informe seu nome completo (mínimo 5 caracteres).</span>
+        </div>
+        <div class="form-group">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" placeholder="seu@email.com">
+          <span class="msg-erro" id="erro-email">Por favor, informe um e-mail válido.</span>
+        </div>
+        <div class="form-group">
+          <label for="whatsapp">WhatsApp <span style="font-weight:300;font-size:0.8rem">(com DDD, ex: 11999999999)</span></label>
+          <input type="tel" id="whatsapp" placeholder="11999999999" maxlength="11">
+          <span class="msg-erro" id="erro-wpp">Por favor, informe o WhatsApp com DDD (10 ou 11 dígitos, apenas números).</span>
+        </div>
+        <button class="btn-primary" onclick="iniciarQuiz()">Começar o Rastreio →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TELAS DE PERGUNTAS (1-10) serão geradas dinamicamente -->
+  <div id="telas-perguntas"></div>
+
+  <!-- TELA LOADING -->
+  <div class="tela" id="tela-loading">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--rosa-escuro);">Analisando suas respostas...</p>
+      <p style="font-size:0.85rem;margin-top:8px;">Preparando seu resultado personalizado</p>
+    </div>
+  </div>
+
+  <!-- TELA RESULTADO -->
+  <div class="tela" id="tela-resultado">
+    <div class="resultado-card" id="resultado-conteudo"></div>
+  </div>
+
+</main>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPLACEHOLDER/exec';
+
+const PERGUNTAS = [
+  {
+    texto: "Quando surge uma discussão em casa, qual é sua primeira reação?",
+    opcoes: [
+      { letra: "A", texto: "Fico tenso(a) por dentro, mas prefiro não dizer nada para evitar piorar a situação", pontos: 1 },
+      { letra: "B", texto: "Falo o que sinto na hora, mesmo que saia de forma mais intensa do que eu gostaria", pontos: 2 },
+      { letra: "C", texto: "Tento ouvir os dois lados antes de me posicionar — nem sempre consigo, mas é o que busco", pontos: 3 }
+    ]
+  },
+  {
+    texto: "Como você costuma se sentir depois de um conflito familiar, mesmo que ele tenha passado?",
+    opcoes: [
+      { letra: "A", texto: "Aliviado(a) por ter ficado quieto(a), mas com um peso que não consigo explicar", pontos: 1 },
+      { letra: "B", texto: "Ainda agitado(a) emocionalmente, como se a situação não tivesse terminado de verdade", pontos: 2 },
+      { letra: "C", texto: "Cansado(a), mas com a sensação de que algo foi dito — mesmo que de forma imperfeita", pontos: 3 }
+    ]
+  },
+  {
+    texto: "Quando alguém da sua família te critica ou te culpa por algo, você:",
+    opcoes: [
+      { letra: "A", texto: "Abaixa a cabeça, concorda ou se afasta — mesmo quando sabe que não é culpa sua", pontos: 1 },
+      { letra: "B", texto: "Sente uma reação imediata de defesa e precisa responder na hora", pontos: 2 },
+      { letra: "C", texto: "Tenta entender se há algo de verdade na crítica antes de reagir", pontos: 3 }
+    ]
+  },
+  {
+    texto: "Com que frequência você sente que engole sapo dentro da sua família?",
+    opcoes: [
+      { letra: "A", texto: "Com muita frequência — é quase sempre assim", pontos: 1 },
+      { letra: "B", texto: "Raramente. Quando algo me incomoda, eu digo — às vezes até demais", pontos: 2 },
+      { letra: "C", texto: "Às vezes sim, às vezes não. Depende de quanto me importa ou de quem está envolvido", pontos: 3 }
+    ]
+  },
+  {
+    texto: "Como você reage quando dois membros da família entram em conflito e te pedem para tomar partido?",
+    opcoes: [
+      { letra: "A", texto: "Sofro muito com isso. Geralmente fico em silêncio ou concordo com quem está mais próximo", pontos: 1 },
+      { letra: "B", texto: "Fico irritado(a) com a situação e acabo me envolvendo mais do que deveria", pontos: 2 },
+      { letra: "C", texto: "Procuro não escolher lados — prefiro tentar apontar o que cada um está sentindo", pontos: 3 }
+    ]
+  },
+  {
+    texto: "Você já se pegou repetindo em sua família adulta padrões que viveu na infância — e não gosta?",
+    opcoes: [
+      { letra: "A", texto: "Sim, frequentemente. Me sinto preso(a) em formas de agir que aprendi lá atrás", pontos: 1 },
+      { letra: "B", texto: "Sim, especialmente quando estou com raiva. Reconheço depois, mas na hora é automático", pontos: 2 },
+      { letra: "C", texto: "Às vezes percebo. Mas tenho conseguido questionar essas reações com mais frequência", pontos: 3 }
+    ]
+  },
+  {
+    texto: "Quando o ambiente familiar está pesado ou tenso, você:",
+    opcoes: [
+      { letra: "A", texto: "Se isola — vai para o quarto, fica no celular, evita contato", pontos: 1 },
+      { letra: "B", texto: "Fica inquieto(a), pode ser irônico(a) ou provocar sem querer", pontos: 2 },
+      { letra: "C", texto: "Tenta nomear o que está acontecendo e abrir uma conversa — mesmo que seja difícil", pontos: 3 }
+    ]
+  },
+  {
+    texto: "Como você descreveria sua capacidade de pedir desculpas depois de um conflito familiar?",
+    opcoes: [
+      { letra: "A", texto: "Peço desculpas com facilidade — mesmo quando não sei se errei, só para acabar logo", pontos: 1 },
+      { letra: "B", texto: "Tenho dificuldade. Peço quando me convenço de que errei, mas isso demora", pontos: 2 },
+      { letra: "C", texto: "Consigo pedir desculpas quando reconheço o erro, e espero o mesmo do outro", pontos: 3 }
+    ]
+  },
+  {
+    texto: "Quando você tenta conversar sobre algo que te magoa dentro de casa, o que acontece?",
+    opcoes: [
+      { letra: "A", texto: "Geralmente desisto no meio — o silêncio parece mais seguro", pontos: 1 },
+      { letra: "B", texto: "A conversa frequentemente escala e vira uma discussão maior do que eu esperava", pontos: 2 },
+      { letra: "C", texto: "Nem sempre é fácil, mas costumo conseguir dizer o que precisa ser dito", pontos: 3 }
+    ]
+  },
+  {
+    texto: "O que você mais deseja nos seus relacionamentos familiares hoje?",
+    opcoes: [
+      { letra: "A", texto: "Paz — mesmo que isso signifique abrir mão de ser visto(a) e ouvido(a)", pontos: 1 },
+      { letra: "B", texto: "Respeito — sentir que o que eu sinto e penso importa, sem precisar brigar por isso", pontos: 2 },
+      { letra: "C", texto: "Conexão real — onde eu possa ser quem sou sem medo de machucar ou ser machucado(a)", pontos: 3 }
+    ]
+  }
+];
+
+const PERFIS = [
+  {
+    emoji: "🔴",
+    nome: "O Guardião do Silêncio",
+    faixa: [10, 17],
+    descricao: "Você aprendeu cedo que o silêncio é mais seguro do que a palavra. Em conflitos, sua tendência é recuar, ceder ou desaparecer — não por indiferença, mas por um medo profundo de rejeição, abandono ou de machucar quem você ama. Por fora, você parece calmo(a). Por dentro, carrega um peso enorme.",
+    significado: "Você provavelmente assume culpas que não são suas, evita conversas difíceis mesmo quando precisa muito tê-las, e sente que 'é melhor não falar' — mesmo quando dói muito ficar calado(a). Você pode estar confundindo harmonia com ausência de conflito.",
+    orientacoes: [
+      { titulo: "NOMEIE ANTES DE AGIR", texto: "Antes de ceder ou se retirar, pare e pergunte a si mesmo(a): 'O que eu estou sentindo agora?' Nomear a emoção é o primeiro passo para não ser controlado(a) por ela." },
+      { titulo: "PRATIQUE O 'EU SINTO'", texto: "Comece pequenas conversas com frases na primeira pessoa: 'Eu me sinto invisível quando isso acontece.' Isso diminui a defensividade do outro e abre espaço para o diálogo." },
+      { titulo: "REVISE SUA RELAÇÃO COM O CONFLITO", texto: "Conflito não é o fim de um relacionamento. É uma oportunidade de aprofundá-lo. Evitar conflito não protege o amor — ele apenas adia a conversa necessária." },
+      { titulo: "IDENTIFIQUE UM ESPAÇO SEGURO", texto: "Há alguém em quem você confia para falar sobre como se sente? Você não precisa processar isso sozinho(a)." },
+      { titulo: "PRÓXIMO PASSO SUGERIDO", texto: "A terapia sistêmica pode ajudar você a entender de onde vem esse padrão — e como começar a ocupar o espaço que você merece nas suas relações." }
+    ]
+  },
+  {
+    emoji: "🟡",
+    nome: "O Vulcão Emocional",
+    faixa: [18, 23],
+    descricao: "Você sente tudo com intensidade. Quando algo te incomoda, o corpo reage antes da mente conseguir processar — e frequentemente a resposta sai de forma mais explosiva ou intensa do que você pretendia. Você não é agressivo(a) por natureza: você está sobrecarregado(a) emocionalmente.",
+    significado: "Você provavelmente tem arrependimentos depois dos conflitos, sente que as pessoas 'não entendem' o quanto você se importa, e às vezes age de formas que contradizem seus próprios valores. A raiva, neste caso, geralmente esconde mágoa, medo ou uma necessidade de ser visto(a) de verdade.",
+    orientacoes: [
+      { titulo: "CRIE UM RITUAL DE PAUSA", texto: "Quando sentir a temperatura subindo, pratique sair por 5 minutos antes de responder. Não é fuga — é inteligência emocional." },
+      { titulo: "PERGUNTE O QUE ESTÁ EMBAIXO DA RAIVA", texto: "A raiva quase sempre protege uma emoção mais vulnerável: mágoa, medo, rejeição. Pergunte-se: 'O que eu realmente estou sentindo antes de ficar irritado(a)?'" },
+      { titulo: "COMUNIQUE A NECESSIDADE, NÃO O ATAQUE", texto: "Em vez de 'Você nunca me escuta!', tente: 'Eu preciso sentir que o que eu digo importa.' A necessidade conecta. O ataque afasta." },
+      { titulo: "REVISE PADRÕES DA SUA HISTÓRIA", texto: "Onde você aprendeu que precisava ser intenso(a) para ser ouvido(a)? Esse padrão faz sentido na sua origem — mas pode não servir mais no seu presente." },
+      { titulo: "PRÓXIMO PASSO SUGERIDO", texto: "A terapia sistêmica é um espaço onde sua intensidade pode ser acolhida — e transformada em força, e não em destruição dos seus vínculos mais importantes." }
+    ]
+  },
+  {
+    emoji: "🟢",
+    nome: "O Construtor de Pontes",
+    faixa: [24, 30],
+    descricao: "Você tem uma capacidade acima da média de observar os conflitos com algum distanciamento — sem se paralisar nem explodir. Isso não significa que você não sofre ou que é perfeito(a): significa que, em algum momento da sua história, você desenvolveu recursos emocionais importantes.",
+    significado: "Você pode estar sendo sobrecarregado(a) pelo papel de 'mediador(a)' emocional da família. Às vezes, o fato de ser o mais equilibrado(a) faz com que os outros não percebam o quanto você também precisa de suporte. Cuidar de si é tão importante quanto cuidar dos outros.",
+    orientacoes: [
+      { titulo: "VOCÊ TAMBÉM TEM LIMITES", texto: "Ser equilibrado(a) não significa absorver tudo. Identifique situações onde você cede mais do que deveria — e pratique dizer não com gentileza e firmeza." },
+      { titulo: "PERMITA-SE SER IMPERFEITO(A)", texto: "Nem todo conflito precisa de mediação. Às vezes você também pode simplesmente sentir, reagir e precisar de apoio. Não se cobre tanto." },
+      { titulo: "PEÇA O QUE VOCÊ PRECISA", texto: "Você é bom(a) em perceber as necessidades dos outros. Mas quando foi a última vez que você pediu ajuda de verdade? Pratique isso." },
+      { titulo: "INVISTA NA SUA PRÓPRIA TERAPIA", texto: "Mesmo quem tem recursos emocionais se beneficia de um espaço exclusivo para si. Você não precisa estar 'em crise' para merecer cuidado." },
+      { titulo: "PRÓXIMO PASSO SUGERIDO", texto: "A terapia sistêmica pode ajudar você a aprofundar ainda mais sua consciência emocional — e garantir que você também esteja sendo cuidado(a), não apenas cuidando." }
+    ]
+  }
+];
+
+let respostas = [];
+let perguntaAtual = 1;
+let dadosUsuario = {};
+let fotoBase64 = "data:image/jpeg;base64,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";
+let logoBase64 = "data:image/jpeg;base64,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";
+
+// Gera telas de perguntas
+function gerarTelas() {
+  const container = document.getElementById('telas-perguntas');
+  PERGUNTAS.forEach((p, i) => {
+    const num = i + 1;
+    const pct = Math.round((num / PERGUNTAS.length) * 100);
+    const div = document.createElement('div');
+    div.className = 'tela';
+    div.id = `tela-${num}`;
+    div.innerHTML = `
+      <div class="pergunta-card">
+        <div class="progresso-wrap">
+          <div class="progresso-label">
+            <span>Pergunta ${num} de ${PERGUNTAS.length}</span>
+            <span>${pct}%</span>
+          </div>
+          <div class="progresso-bar"><div class="progresso-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="pergunta-numero">Pergunta ${num}</div>
+        <div class="pergunta-texto">${p.texto}</div>
+        <div class="opcoes">
+          ${p.opcoes.map(o => `
+            <button class="opcao" data-letra="${o.letra}" data-pontos="${o.pontos}"
+              onclick="selecionarOpcao(${num}, this, ${o.pontos})">
+              ${o.texto}
+            </button>
+          `).join('')}
+        </div>
+        <button class="btn-primary" id="btn-prox-${num}" disabled onclick="proximaTela(${num})">
+          ${num < PERGUNTAS.length ? 'Próxima →' : 'Ver meu resultado →'}
+        </button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function validarFormulario() {
+  let ok = true;
+  const nome = document.getElementById('nome').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const wpp = document.getElementById('whatsapp').value.trim();
+
+  document.querySelectorAll('.msg-erro').forEach(e => e.classList.remove('visivel'));
+  document.querySelectorAll('input').forEach(e => e.classList.remove('erro'));
+
+  if (nome.length < 5) {
+    document.getElementById('erro-nome').classList.add('visivel');
+    document.getElementById('nome').classList.add('erro');
+    ok = false;
+  }
+  const emailReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailReg.test(email)) {
+    document.getElementById('erro-email').classList.add('visivel');
+    document.getElementById('email').classList.add('erro');
+    ok = false;
+  }
+  const wppReg = /^\d{10,11}$/;
+  if (!wppReg.test(wpp)) {
+    document.getElementById('erro-wpp').classList.add('visivel');
+    document.getElementById('whatsapp').classList.add('erro');
+    ok = false;
+  }
+  return ok;
+}
+
+function iniciarQuiz() {
+  if (!validarFormulario()) return;
+  dadosUsuario = {
+    nome: document.getElementById('nome').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    whatsapp: document.getElementById('whatsapp').value.trim()
+  };
+  mostrarTela('tela-1');
+}
+
+function selecionarOpcao(numPergunta, el, pontos) {
+  const card = el.closest('.pergunta-card');
+  card.querySelectorAll('.opcao').forEach(o => o.classList.remove('selecionada'));
+  el.classList.add('selecionada');
+  respostas[numPergunta - 1] = pontos;
+  document.getElementById(`btn-prox-${numPergunta}`).disabled = false;
+}
+
+function proximaTela(numAtual) {
+  if (numAtual < PERGUNTAS.length) {
+    mostrarTela(`tela-${numAtual + 1}`);
+  } else {
+    finalizarQuiz();
+  }
+}
+
+function mostrarTela(id) {
+  document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+  document.getElementById(id).classList.add('ativa');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function finalizarQuiz() {
+  mostrarTela('tela-loading');
+  const score = respostas.reduce((a, b) => a + b, 0);
+  const perfil = PERFIS.find(p => score >= p.faixa[0] && score <= p.faixa[1]) || PERFIS[0];
+
+  setTimeout(() => {
+    renderizarResultado(perfil, score);
+    enviarParaPlanilha(perfil, score);
+    mostrarTela('tela-resultado');
+  }, 2000);
+}
+
+function renderizarResultado(perfil, score) {
+  const data = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
+  const container = document.getElementById('resultado-conteudo');
+  container.innerHTML = `
+    <div class="resultado-badge">${perfil.emoji}</div>
+    <h2 class="resultado-titulo">${perfil.nome}</h2>
+    <span class="resultado-score">Score: ${score} / 30 pontos</span>
+    <p class="resultado-desc">${perfil.descricao}</p>
+    <div style="background:var(--rosa-claro);border-radius:14px;padding:20px;margin:20px 0;text-align:left;">
+      <p style="font-size:0.85rem;font-weight:700;color:var(--rosa-escuro);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">O que isso significa na prática</p>
+      <p style="color:var(--texto-suave);font-size:0.95rem;line-height:1.7;">${perfil.significado}</p>
+    </div>
+    <div class="resultado-pratica">
+      <h3>Orientações Práticas</h3>
+      ${perfil.orientacoes.map(o => `
+        <div class="orientacao">
+          <strong>${o.titulo}</strong>
+          <p>${o.texto}</p>
+        </div>
+      `).join('')}
+    </div>
+    <button class="btn-pdf" onclick="gerarPDF('${perfil.nome}', ${score}, '${perfil.emoji}', '${perfil.descricao}', '${perfil.significado}', ${JSON.stringify(perfil.orientacoes)})">
+      ⬇ Baixar meu resultado em PDF
+    </button>
+    <p style="font-size:0.78rem;color:var(--texto-suave);margin-top:12px;text-align:center;">
+      Resultado preparado em ${data}
+    </p>
+  `;
+}
+
+function enviarParaPlanilha(perfil, score) {
+  const dados = {
+    nome: dadosUsuario.nome,
+    email: dadosUsuario.email,
+    whatsapp: dadosUsuario.whatsapp,
+    resultado: perfil.nome,
+    score: score
+  };
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(dados)
+  }).catch(err => console.log('Erro ao enviar:', err));
+}
+
+// ==================== GERAÇÃO DO PDF ====================
+function gerarPDF(nomePerfil, score, emoji, descricao, significado, orientacoes) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210, H = 297;
+  const rosa1 = [252, 228, 236];
+  const rosa2 = [194, 24, 91];
+  const rosa3 = [136, 14, 79];
+  const textoSuave = [123, 79, 106];
+  const data = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
+
+  // ===== PÁGINA 1 — CAPA =====
+  doc.setFillColor(...rosa1);
+  doc.rect(0, 0, W, H, 'F');
+
+  // Faixa decorativa topo
+  doc.setFillColor(...rosa3);
+  doc.rect(0, 0, W, 6, 'F');
+
+  // Logo circular
+  try {
+    // Máscara circular para logo
+    doc.addImage(logoBase64, 'JPEG', W/2 - 18, 20, 36, 36);
+  } catch(e) {}
+
+  // Foto
+  try {
+    doc.addImage(fotoBase64, 'PNG', W/2 - 30, 62, 60, 72);
+  } catch(e) {}
+
+  // Linha decorativa
+  doc.setDrawColor(...rosa2);
+  doc.setLineWidth(0.5);
+  doc.line(40, 140, W-40, 140);
+
+  doc.setTextColor(...rosa3);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('SEU RESULTADO', W/2, 150, {align:'center'});
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.setTextColor(...rosa3);
+  const titulo = doc.splitTextToSize('Rastreio de Conflitos Familiares', 130);
+  doc.text(titulo, W/2, 162, {align:'center'});
+
+  doc.setDrawColor(...rosa2);
+  doc.line(40, 180, W-40, 180);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(...textoSuave);
+  doc.text('Preparado especialmente para:', W/2, 192, {align:'center'});
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(...rosa3);
+  doc.text(dadosUsuario.nome, W/2, 202, {align:'center'});
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(...textoSuave);
+  doc.text(`Data de realização: ${data}`, W/2, 212, {align:'center'});
+
+  // Frase rodapé
+  doc.setFillColor(...rosa3);
+  doc.rect(0, H-28, W, 28, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(9);
+  doc.text('"Entender como você reage é o primeiro passo para mudar o que já não serve."', W/2, H-16, {align:'center'});
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.text('Sueli Pedroso — Terapeuta Sistêmica', W/2, H-9, {align:'center'});
+
+  // ===== PÁGINA 2 — RESULTADO =====
+  doc.addPage();
+  doc.setFillColor(...rosa1);
+  doc.rect(0, 0, W, H, 'F');
+  doc.setFillColor(...rosa3);
+  doc.rect(0, 0, W, 6, 'F');
+
+  doc.setFillColor(...rosa2);
+  doc.rect(0, 6, W, 32, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text('SEU PERFIL', W/2, 18, {align:'center'});
+  doc.setFontSize(20);
+  doc.text(`${emoji} ${nomePerfil}`, W/2, 30, {align:'center'});
+
+  // Score badge
+  doc.setFillColor(255,255,255);
+  doc.roundedRect(W/2-25, 44, 50, 12, 6, 6, 'F');
+  doc.setTextColor(...rosa3);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text(`Score: ${score} / 30 pontos`, W/2, 52, {align:'center'});
+
+  let y = 66;
+  doc.setDrawColor(...rosa2);
+  doc.setLineWidth(0.3);
+  doc.line(20, y, W-20, y);
+  y += 10;
+
+  doc.setTextColor(...rosa3);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('Descrição do seu perfil', 20, y);
+  y += 8;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
+  doc.setTextColor(...textoSuave);
+  const descLines = doc.splitTextToSize(descricao, 170);
+  doc.text(descLines, 20, y);
+  y += descLines.length * 5.5 + 10;
+
+  doc.setDrawColor(...rosa2);
+  doc.line(20, y, W-20, y);
+  y += 10;
+
+  doc.setTextColor(...rosa3);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('O que isso significa na prática', 20, y);
+  y += 8;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
+  doc.setTextColor(...textoSuave);
+  const sigLines = doc.splitTextToSize(significado, 170);
+  doc.text(sigLines, 20, y);
+
+  // Rodapé
+  doc.setFillColor(...rosa3);
+  doc.rect(0, H-16, W, 16, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.text('Sueli Pedroso — Terapeuta Sistêmica | @suape3_terapias', W/2, H-8, {align:'center'});
+
+  // ===== PÁGINA 3 — ORIENTAÇÕES =====
+  doc.addPage();
+  doc.setFillColor(...rosa1);
+  doc.rect(0, 0, W, H, 'F');
+  doc.setFillColor(...rosa3);
+  doc.rect(0, 0, W, 6, 'F');
+
+  doc.setFillColor(...rosa2);
+  doc.rect(0, 6, W, 24, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text('Orientações Práticas', W/2, 22, {align:'center'});
+
+  y = 42;
+  orientacoes.forEach((o, i) => {
+    if (y > 260) { doc.addPage(); y = 20; }
+    // Número
+    doc.setFillColor(...rosa2);
+    doc.circle(26, y+2, 5, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text(String(i+1), 26, y+4.5, {align:'center'});
+
+    doc.setTextColor(...rosa3);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.text(o.titulo, 35, y+4);
+    y += 10;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...textoSuave);
+    const lines = doc.splitTextToSize(o.texto, 160);
+    doc.text(lines, 35, y);
+    y += lines.length * 5 + 8;
+
+    if (i < orientacoes.length - 1) {
+      doc.setDrawColor(240, 214, 232);
+      doc.setLineWidth(0.2);
+      doc.line(20, y, W-20, y);
+      y += 8;
+    }
+  });
+
+  // Rodapé
+  doc.setFillColor(...rosa3);
+  doc.rect(0, H-16, W, 16, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.text('Sueli Pedroso — Terapeuta Sistêmica | @suape3_terapias', W/2, H-8, {align:'center'});
+
+  // ===== PÁGINA 4 — SOBRE A TERAPEUTA =====
+  doc.addPage();
+  doc.setFillColor(...rosa1);
+  doc.rect(0, 0, W, H, 'F');
+  doc.setFillColor(...rosa3);
+  doc.rect(0, 0, W, 6, 'F');
+
+  // Foto profissional
+  try {
+    doc.addImage(fotoBase64, 'PNG', W/2-35, 14, 70, 84);
+  } catch(e) {}
+
+  // Logo em círculo ao lado
+  try {
+    doc.addImage(logoBase64, 'JPEG', W/2+30, 14, 28, 28);
+  } catch(e) {}
+
+  doc.setDrawColor(...rosa2);
+  doc.setLineWidth(0.5);
+  doc.line(40, 104, W-40, 104);
+
+  doc.setTextColor(...rosa3);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.text('Sueli Pedroso', W/2, 116, {align:'center'});
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(...textoSuave);
+  doc.text('Terapeuta Sistêmica', W/2, 124, {align:'center'});
+
+  doc.setDrawColor(...rosa2);
+  doc.line(40, 130, W-40, 130);
+
+  doc.setFontSize(9.5);
+  y = 140;
+  const bio = 'Sou terapeuta sistêmica e meu trabalho auxilia pessoas a identificar a origem de conflitos emocionais e padrões repetitivos, promovendo mais consciência, equilíbrio, leveza e transformação em suas vidas.';
+  const bioLines = doc.splitTextToSize(bio, 160);
+  doc.text(bioLines, W/2, y, {align:'center'});
+  y += bioLines.length * 5.5 + 16;
+
+  // Instagram
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...rosa2);
+  doc.text('📸  @suape3_terapias', W/2, y, {align:'center'});
+  y += 10;
+  doc.text('📱  (42) 98435-2645', W/2, y, {align:'center'});
+  y += 20;
+
+  // CTA
+  doc.setFillColor(...rosa3);
+  doc.roundedRect(30, y, W-60, 22, 5, 5, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text('✦  AGENDE SUA SESSÃO  ✦', W/2, y+10, {align:'center'});
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text('WhatsApp: (42) 98435-2645', W/2, y+18, {align:'center'});
+
+  y += 36;
+  doc.setDrawColor(...rosa2);
+  doc.line(40, y, W-40, y);
+  y += 10;
+
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(9);
+  doc.setTextColor(...textoSuave);
+  const frase = '"Você não precisa mudar quem você é. Precisa entender por que age como age — e escolher, a partir daí."';
+  const fraseLines = doc.splitTextToSize(frase, 160);
+  doc.text(fraseLines, W/2, y, {align:'center'});
+
+  // Rodapé final
+  doc.setFillColor(...rosa3);
+  doc.rect(0, H-16, W, 16, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.text('© Sueli Pedroso — Terapeuta Sistêmica | @suape3_terapias', W/2, H-8, {align:'center'});
+
+  // Download
+  const nomeArquivo = 'resultado-' + dadosUsuario.nome.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') + '.pdf';
+  doc.save(nomeArquivo);
+}
+
+// Init
+gerarTelas();
+</script>
+</body>
+</html>
