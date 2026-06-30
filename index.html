@@ -305,7 +305,7 @@ function mostrarResultado(perfil, score) {
 
 function enviar(perfil, score) {
   var dados = {nome:usuario.nome, email:usuario.email, whatsapp:usuario.wpp, resultado:perfil.nome, score:score};
-  fetch('https://script.google.com/macros/s/AKfycbxG7P6v7UNeSDZOv_yNwuqcWkwZpMgGqIzb4ioW2eOyoXeb3w5cC1D3_1Xob-Cmoh42/exec', {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(dados)}).catch(function(){});
+  fetch('https://script.google.com/macros/s/AKfycbz5yucyzcka-FlL55T1IUv3LYK5W-m6oFAiTcCO2lgKw9VEXP1PS9GHI7k8Z1gp5CT2/exec', {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(dados)}).catch(function(){});
 }
 
 
